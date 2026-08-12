@@ -1,0 +1,99 @@
+# Problem Statement
+
+## 1. Title
+**Rin's SmartBite – Smart Food Ordering and Delivery Platform**
+
+## 2. Domain
+**Food Technology / E-Commerce / Full-Stack Web Application**
+
+## 3. Who is the user?
+- Customer
+- Restaurant Admin
+- System Administrator
+
+## 4. What problem are we solving?
+Customers often need a convenient platform to discover restaurants, browse food menus, compare food options, and place orders. Small and medium-sized restaurants also need a simple digital system to manage their menus and customer orders efficiently.
+
+SmartBite provides a centralized platform where customers can browse restaurants and food items, add items to a cart, and place food orders. Restaurants can manage their food items and process customer orders through the platform.
+
+## 5. Proposed Solution
+SmartBite is a full-stack web application that provides an online food ordering platform.
+
+The application will provide:
+- User registration and login
+- JWT-based authentication
+- Restaurant listing
+- Food menu browsing
+- Search and category-based browsing
+- Add food items to cart
+- Place food orders
+- View order history
+- Restaurant food-item management
+- Restaurant order management
+- Order status updates
+- Basic rating and review functionality
+
+An AI-based food recommendation feature can be added as a future enhancement based on the user's ordering history and preferences.
+
+## 6. Core Entities / Database Tables
+1. Users
+2. Restaurants
+3. Food_Items
+4. Orders
+5. Order_Items
+6. Categories
+7. Payments
+8. Reviews
+
+## 7. User Roles & Permissions
+
+### Customer
+- Register and log in
+- Browse restaurants
+- View food items
+- Add items to cart
+- Place orders
+- View order history
+- Submit reviews
+
+### Restaurant Admin
+- Log in
+- Add, update, and delete food items
+- Manage food availability
+- View customer orders
+- Update order status
+
+### System Administrator
+- Manage customers
+- Manage restaurants
+- Monitor orders and platform activities
+
+## 8. Success Criteria
+- Customer registration and login should work successfully.
+- JWT-based authentication should work.
+- Customers should be able to browse restaurants and food items.
+- Customers should be able to add food items to a cart.
+- Customers should be able to place an order.
+- Orders should be stored correctly in the database.
+- Restaurant admins should be able to manage food items and orders.
+- Frontend, backend, and database should communicate through REST APIs.
+
+## 9. Out of Scope
+- Real-time GPS delivery tracking
+- Real online payment processing
+- Advanced route optimization
+- Multi-city delivery management
+- Real-time driver location tracking
+- Complex restaurant commission and settlement systems
+
+## 10. Chosen Track
+**Python Track – FastAPI**
+
+### Technology Stack
+- Frontend: React.js
+- Backend: FastAPI
+- Database: PostgreSQL
+- Authentication: JWT
+- API: REST API
+- API Documentation: Swagger / OpenAPI
+- Version Control: Git & GitHub
