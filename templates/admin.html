@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container rsb-section">
+    <h2 class="rsb-section-title">Admin Dashboard</h2>
+
+    <div class="rsb-stats-grid">
+        <div class="rsb-stat-card"><b>{{ stats.total_users }}</b><span>Total Users</span></div>
+        <div class="rsb-stat-card"><b>{{ stats.total_restaurants }}</b><span>Restaurants</span></div>
+        <div class="rsb-stat-card"><b>{{ stats.total_orders }}</b><span>Total Orders</span></div>
+        <div class="rsb-stat-card"><b>₹{{ stats.total_revenue }}</b><span>Total Revenue</span></div>
+        <div class="rsb-stat-card"><b>{{ stats.active_deliveries }}</b><span>Active Deliveries</span></div>
+        <div class="rsb-stat-card"><b>{{ stats.completed_orders }}</b><span>Completed Orders</span></div>
+    </div>
+
+    <ul class="nav nav-tabs mt-4" id="adminTabs">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-orders">Orders</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-restaurants">Restaurants</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-coupons">Coupons</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-payments">Payments</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-partners">Delivery Partners</button></li>
+    </ul>
+
+    <div class="tab-content mt-3">
+        <div class="tab-pane fade show active" id="tab-orders">
+            <table class="table rsb-admin-table">
+                <thead><tr><th>Order</th><th>Total</th><th>Status</th><th>Update Status</th></tr></thead>
+                <tbody>
+                {% for order, restaurant in orders_with_restaurant %}
+                    <tr>
+                        <td>{{ order['order_code'] }}<br><small class="text-muted">{{ restaurant['name'] if restaurant }}</small></td>
+                        <td>₹{{ order['grand_total'] }}</td>
+                        <td><span class="badge bg-secondary">{{ order['status'].replace('_',' ').title() }}</span></td>
+                        <td>
+                            <form method="post" action="{{ url_for('admin_update_order_status', order_id=order['id']) }}" class="d-flex gap-2">
+                                <select name="status" class="form-select form-select-sm">
+                                    {% for s in ['placed','confirmed','preparing','ready','assigned','picked_up','out_for_delivery','delivered'] %}
+                                    <option value="{{ s }}" {{ 'selected' if s == order['status'] }}>{{ s.replace('_',' ').title() }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="rsb-btn rsb-btn-outline rsb-btn-sm">Update</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="tab-pane fade" id="tab-restaurants">
+            <table class="table rsb-admin-table">
+                <thead><tr><th>Name</th><th>Cuisine</th><th>Rating</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody>
+                {% for r in restaurants %}
+                    <tr>
+                        <td>{{ r['name'] }}</td>
+                        <td>{{ r['cuisine'] }}</td>
+                        <td>⭐ {{ r['rating'] }}</td>
+                        <td>{{ 'Open' if r['is_open'] else 'Closed' }}</td>
+                        <td>
+                            <form method="post" action="{{ url_for('admin_toggle_restaurant', restaurant_id=r['id']) }}" class="d-inline">
+                                <button type="submit" class="rsb-btn rsb-btn-outline rsb-btn-sm">Toggle Open/Closed</button>
+                            </form>
+                            <form method="post" action="{{ url_for('admin_delete_restaurant', restaurant_id=r['id']) }}" class="d-inline" onsubmit="return confirm('Delete this restaurant?')">
+                                <button type="submit" class="rsb-btn rsb-btn-danger rsb-btn-sm">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="tab-pane fade" id="tab-coupons">
+            <div class="rsb-summary-card mb-3">
+                <h6>Add Coupon</h6>
+                <form method="post" action="{{ url_for('admin_add_coupon') }}" class="row g-2">
+                    <div class="col-md-2"><input class="form-control" name="code" placeholder="CODE" required></div>
+                    <div class="col-md-3"><input class="form-control" name="description" placeholder="Description"></div>
+                    <div class="col-md-2">
+                        <select class="form-select" name="discount_type">
+                            <option value="PERCENT">PERCENT</option>
+                            <option value="FLAT">FLAT</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1"><input class="form-control" name="discount_value" type="number" placeholder="Value" required></div>
+                    <div class="col-md-2"><input class="form-control" name="max_discount" type="number" placeholder="Max Disc."></div>
+                    <div class="col-md-1"><input class="form-control" name="min_order_value" type="number" placeholder="Min Order"></div>
+                    <div class="col-md-1"><button type="submit" class="rsb-btn rsb-btn-primary rsb-btn-sm w-100">Add</button></div>
+                </form>
+            </div>
+            <table class="table rsb-admin-table">
+                <thead><tr><th>Code</th><th>Description</th><th>Min Order</th><th>Action</th></tr></thead>
+                <tbody>
+                {% for c in coupons %}
+                    <tr>
+                        <td>{{ c['code'] }}</td>
+                        <td>{{ c['description'] }}</td>
+                        <td>₹{{ c['min_order_value'] }}</td>
+                        <td>
+                            <form method="post" action="{{ url_for('admin_delete_coupon', coupon_id=c['id']) }}">
+                                <button type="submit" class="rsb-btn rsb-btn-danger rsb-btn-sm">Deactivate</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="tab-pane fade" id="tab-payments">
+            <table class="table rsb-admin-table">
+                <thead><tr><th>Transaction ID</th><th>Method</th><th>Amount</th><th>Status</th></tr></thead>
+                <tbody>
+                {% for p in payments %}
+                    <tr><td>{{ p['transaction_id'] }}</td><td>{{ p['method'] }}</td><td>₹{{ p['amount'] }}</td><td>{{ p['status'] }}</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="tab-pane fade" id="tab-partners">
+            <table class="table rsb-admin-table">
+                <thead><tr><th>Name</th><th>Vehicle</th><th>Rating</th></tr></thead>
+                <tbody>
+                {% for p in delivery_partners %}
+                    <tr><td>{{ p['name'] }}</td><td>{{ p['vehicle_type'] }} ({{ p['vehicle_number'] }})</td><td>⭐ {{ p['rating'] }}</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

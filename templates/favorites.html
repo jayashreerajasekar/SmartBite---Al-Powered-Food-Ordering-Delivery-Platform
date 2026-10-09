@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container rsb-section">
+    <h2 class="rsb-section-title">My Favorites</h2>
+
+    <h5>Restaurants</h5>
+    <div class="rsb-restaurant-grid mb-4">
+        {% for r in restaurants %}
+        <a href="{{ url_for('restaurant_page', restaurant_id=r['id']) }}" class="rsb-restaurant-card">
+            <div class="rsb-restaurant-card-img">
+                <img src="{{ r['cover_image'] }}" alt="{{ r['name'] }}">
+            </div>
+            <div class="rsb-restaurant-card-body">
+                <h5>{{ r['name'] }}</h5>
+                <p class="rsb-cuisine">{{ r['cuisine'] }}</p>
+            </div>
+        </a>
+        {% else %}
+        <p class="text-muted">No favorite restaurants yet.</p>
+        {% endfor %}
+    </div>
+
+    <h5>Food Items</h5>
+    <div class="rsb-food-grid">
+        {% for f in foods %}
+        <div class="rsb-food-card">
+            <img src="{{ f['image'] }}" alt="{{ f['name'] }}">
+            <div class="rsb-food-card-body">
+                <h6>{{ f['name'] }}</h6>
+                <p class="text-muted small mb-1">{{ f['restaurant_name'] }}</p>
+                <p class="mb-0">₹{{ f['price'] }}</p>
+            </div>
+        </div>
+        {% else %}
+        <p class="text-muted">No favorite food items yet.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

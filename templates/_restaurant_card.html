@@ -1,0 +1,23 @@
+<a href="{{ url_for('restaurant_page', restaurant_id=r['id']) }}" class="rsb-restaurant-card">
+    <div class="rsb-restaurant-card-img">
+        <img src="{{ r['cover_image'] }}" alt="{{ r['name'] }}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800'">
+        {% if r['offer_text'] %}<span class="rsb-card-offer">{{ r['offer_text'] }}</span>{% endif %}
+        {% if not r['is_open'] %}<span class="rsb-card-closed">Closed</span>{% endif %}
+        <button type="button" class="rsb-fav-btn {{ 'active' if r['id'] in favorite_ids else '' }}"
+                onclick="event.preventDefault(); toggleFavRestaurant({{ r['id'] }}, this);">
+            {{ '❤️' if r['id'] in favorite_ids else '🤍' }}
+        </button>
+    </div>
+    <div class="rsb-restaurant-card-body">
+        <div class="d-flex justify-content-between">
+            <h5>{{ r['name'] }}</h5>
+            <span class="rsb-rating">⭐ {{ r['rating'] }}</span>
+        </div>
+        <p class="rsb-cuisine">{{ r['cuisine'] }}</p>
+        <div class="rsb-restaurant-meta">
+            <span>⏱ {{ r['delivery_time'] }} mins</span>
+            <span>📍 {{ r['distance_km'] }} km</span>
+            <span>₹{{ r['price_for_two'] }} for two</span>
+        </div>
+    </div>
+</a>

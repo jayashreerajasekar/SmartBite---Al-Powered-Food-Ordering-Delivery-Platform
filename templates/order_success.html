@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container rsb-section">
+    <div class="rsb-success-card">
+        <div class="rsb-success-icon">✅</div>
+        <h2>ORDER PLACED SUCCESSFULLY</h2>
+        <p class="text-muted">Order ID: <b>{{ order['order_code'] }}</b></p>
+
+        <div class="rsb-order-summary-box">
+            <h5>{{ restaurant['name'] }}</h5>
+            {% for item in items %}
+            <div class="d-flex justify-content-between">
+                <span>{{ item['quantity'] }} x {{ item['food_name'] }} {% if item['size'] and item['size'] != 'Regular' %}({{ item['size'] }}){% endif %}</span>
+                <span>₹{{ item['unit_price'] * item['quantity'] }}</span>
+            </div>
+            {% endfor %}
+            <hr>
+            <div class="d-flex justify-content-between fw-bold">
+                <span>Total Paid</span>
+                <span>₹{{ order['grand_total'] }}</span>
+            </div>
+            <p class="text-muted small mt-2 mb-0">Payment Method: {{ payment['method'] if payment else 'N/A' }} &middot; Transaction ID: {{ payment['transaction_id'] if payment else 'N/A' }}</p>
+            {% if address %}
+            <p class="text-muted small mb-0">Delivering to: {{ address['house_no'] }}, {{ address['street'] }}, {{ address['area'] }}, {{ address['city'] }}</p>
+            {% endif %}
+            <p class="text-muted small mb-0">Estimated Delivery: 25-35 minutes</p>
+        </div>
+
+        <div class="rsb-success-actions">
+            <a href="{{ url_for('track_order', order_id=order['id']) }}" class="rsb-btn rsb-btn-primary">TRACK ORDER</a>
+            <a href="{{ url_for('orders_page') }}" class="rsb-btn rsb-btn-outline">VIEW ORDERS</a>
+            <a href="{{ url_for('restaurants_page') }}" class="rsb-btn rsb-btn-outline">CONTINUE SHOPPING</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

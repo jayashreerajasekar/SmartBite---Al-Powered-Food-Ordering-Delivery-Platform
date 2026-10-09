@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="rsb-hero">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="rsb-hero-title">Delicious food.<br>Delivered to your door.</h1>
+                <p class="rsb-hero-subtitle">Order from 35+ restaurants near you &mdash; biryani, pizza, shawarma, dosa, and everything in between.</p>
+                <form class="rsb-hero-search" action="{{ url_for('restaurants_page') }}" method="get">
+                    <span class="rsb-loc">📍 Coimbatore</span>
+                    <input type="text" name="q" placeholder="Search 'Biryani', 'Pizza', 'South Indian'...">
+                    <button type="submit">Find Food</button>
+                </form>
+                <div class="rsb-hero-stats">
+                    <div><b>35+</b><span>Restaurants</span></div>
+                    <div><b>900+</b><span>Dishes</span></div>
+                    <div><b>25 min</b><span>Avg. Delivery</span></div>
+                </div>
+            </div>
+            <div class="col-lg-6 d-none d-lg-block">
+                <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=700" class="rsb-hero-img" alt="Delicious food spread">
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="container rsb-section">
+    <h2 class="rsb-section-title">What's on your mind?</h2>
+    <div class="rsb-category-scroll">
+        {% for cat in categories %}
+        <a href="{{ url_for('restaurants_page', category=cat['name']) }}" class="rsb-category-card">
+            <img src="{{ cat['image'] }}" alt="{{ cat['name'] }}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=300'">
+            <span>{{ cat['name'] }}</span>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="container rsb-section">
+    <div class="rsb-offer-banner-row">
+        {% for offer in offers %}
+        <div class="rsb-offer-banner" style="background-image: url('{{ offer['image'] }}')">
+            <div class="rsb-offer-banner-overlay">
+                <h4>{{ offer['title'] }}</h4>
+                <p>{{ offer['description'] }}</p>
+                <span class="rsb-offer-code">{{ offer['coupon_code'] }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="container rsb-section">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="rsb-section-title mb-0">Popular restaurants near you</h2>
+        <a href="{{ url_for('restaurants_page') }}" class="rsb-link">View all &rarr;</a>
+    </div>
+    <div class="rsb-restaurant-grid">
+        {% for r in restaurants %}
+        {% include "_restaurant_card.html" %}
+        {% endfor %}
+    </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container rsb-section">
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="rsb-summary-card text-center">
+                <div class="rsb-profile-avatar">{{ user['name'][0]|upper }}</div>
+                <h5>{{ user['name'] }}</h5>
+                <p class="text-muted mb-1">{{ user['email'] }}</p>
+                <p class="text-muted">{{ user['phone'] or 'No phone number added' }}</p>
+                <p class="badge bg-secondary">{{ user['role'].title() }}</p>
+                <hr>
+                <p class="mb-1"><b>{{ order_count }}</b> Orders Placed</p>
+                <a href="{{ url_for('logout') }}" class="rsb-btn rsb-btn-outline w-100 mt-2">Logout</a>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="rsb-summary-card mb-3">
+                <h5>Saved Addresses</h5>
+                {% for addr in addresses %}
+                <p class="mb-1"><span class="badge bg-secondary">{{ addr['address_type'] }}</span> {{ addr['house_no'] }}, {{ addr['street'] }}, {{ addr['area'] }}, {{ addr['city'] }}</p>
+                {% else %}
+                <p class="text-muted">No saved addresses.</p>
+                {% endfor %}
+            </div>
+
+            <div class="rsb-summary-card">
+                <h5>Notifications</h5>
+                {% for n in notifications %}
+                <div class="rsb-notification-row">
+                    <span>🔔 {{ n['message'] }}</span>
+                    <span class="text-muted small">{{ n['created_at'] }}</span>
+                </div>
+                {% else %}
+                <p class="text-muted">No notifications yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

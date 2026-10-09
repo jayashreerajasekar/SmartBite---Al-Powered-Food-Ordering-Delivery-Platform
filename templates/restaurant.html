@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}{{ restaurant['name'] }} - {{ app_name }}{% endblock %}
+{% block content %}
+
+<div class="rsb-restaurant-hero" style="background-image: url('{{ restaurant['cover_image'] }}')">
+    <div class="rsb-restaurant-hero-overlay"></div>
+</div>
+
+<div class="container">
+    <div class="rsb-restaurant-header">
+        <div>
+            <h1>{{ restaurant['name'] }}
+                {% if not restaurant['is_open'] %}<span class="badge bg-secondary">Closed</span>{% endif %}
+            </h1>
+            <p class="text-muted mb-1">{{ restaurant['cuisine'] }}</p>
+            <p class="text-muted mb-1">📍 {{ restaurant['address'] }}</p>
+            <p class="text-muted mb-1">🕐 {{ restaurant['opening_hours'] }}</p>
+            <p>{{ restaurant['description'] }}</p>
+        </div>
+        <div class="rsb-restaurant-stats-card">
+            <div class="rsb-rating-big">⭐ {{ restaurant['rating'] }}</div>
+            <p class="text-muted small">{{ restaurant['review_count'] }} reviews</p>
+            <p>⏱ {{ restaurant['delivery_time'] }} mins &nbsp;|&nbsp; 📍 {{ restaurant['distance_km'] }} km</p>
+            <p>₹{{ restaurant['price_for_two'] }} for two</p>
+            {% if restaurant['offer_text'] %}<p class="rsb-offer-pill">{{ restaurant['offer_text'] }}</p>{% endif %}
+            {% if current_user %}
+            <button type="button" class="rsb-btn rsb-btn-outline w-100" onclick="toggleFavRestaurant({{ restaurant['id'] }}, this)">
+                {{ '❤️ Saved to Favorites' if is_favorite else '🤍 Add to Favorites' }}
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="rsb-menu-layout">
+        <div class="rsb-menu-nav d-none d-lg-block">
+            <h6>Menu</h6>
+            {% for section_name in sections.keys() %}
+            <a href="#section-{{ loop.index }}" class="rsb-menu-nav-link">{{ section_name }} <span>{{ sections[section_name]|length }}</span></a>
+            {% endfor %}
+        </div>
+
+        <div class="rsb-menu-content">
+            {% for section_name, items in sections.items() %}
+            <div class="rsb-menu-section" id="section-{{ loop.index }}">
+                <h3>{{ section_name }} <span class="text-muted fs-6">({{ items|length }})</span></h3>
+                <div class="rsb-menu-items">
+                    {% for item in items %}
+                    <div class="rsb-menu-item">
+                        <div class="rsb-menu-item-info">
+                            <span class="rsb-veg-dot {{ 'veg' if item['is_veg'] else 'nonveg' }}"></span>
+                            <h6>{{ item['name'] }}</h6>
+                            <p class="rsb-menu-item-price">₹{{ item['price'] }}</p>
+                            <p class="rsb-menu-item-rating">⭐ {{ item['rating'] }} &middot; {{ item['prep_time'] }} min</p>
+                            <p class="rsb-menu-item-desc">{{ item['description'] }}</p>
+                        </div>
+                        <div class="rsb-menu-item-img">
+                            <img src="{{ item['image'] }}" alt="{{ item['name'] }}" loading="lazy"
+                                 onerror="this.src='https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=300'">
+                            <button type="button" class="rsb-add-btn"
+                                data-id="{{ item['id'] }}"
+                                data-name="{{ item['name'] }}"
+                                data-price="{{ item['price'] }}"
+                                data-image="{{ item['image'] }}"
+                                data-desc="{{ item['description'] }}"
+                                data-rating="{{ item['rating'] }}"
+                                data-calories="{{ item['calories'] }}"
+                                data-prep="{{ item['prep_time'] }}"
+                                data-veg="{{ item['is_veg'] }}"
+                                onclick="openFoodModal(this)">
+                                ADD
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Food detail / customization modal -->
+<div class="modal fade" id="foodModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+        <form id="foodModalForm" method="post" action="">
+            <div class="modal-header">
+                <h5 class="modal-title" id="foodModalTitle">Food Name</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <img id="foodModalImage" src="" class="rsb-modal-food-img" alt="">
+                <p id="foodModalDesc" class="text-muted"></p>
+                <div class="d-flex gap-3 small text-muted mb-3">
+                    <span id="foodModalCalories"></span>
+                    <span id="foodModalPrep"></span>
+                    <span id="foodModalRating"></span>
+                </div>
+
+                <label class="form-label fw-bold">Size</label>
+                <div class="btn-group w-100 mb-3" role="group">
+                    <input type="radio" class="btn-check" name="size" id="sizeRegular" value="Regular" checked>
+                    <label class="btn btn-outline-secondary" for="sizeRegular">Regular</label>
+                    <input type="radio" class="btn-check" name="size" id="sizeLarge" value="Large">
+                    <label class="btn btn-outline-secondary" for="sizeLarge">Large (+₹60)</label>
+                </div>
+
+                <label class="form-label fw-bold">Extras</label>
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="extras" value="Extra Cheese" id="extraCheese">
+                        <label class="form-check-label" for="extraCheese">Extra Cheese (+₹40)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="extras" value="Extra Chicken" id="extraChicken">
+                        <label class="form-check-label" for="extraChicken">Extra Chicken (+₹80)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="extras" value="Extra Sauce" id="extraSauce">
+                        <label class="form-check-label" for="extraSauce">Extra Sauce (+₹20)</label>
+                    </div>
+                </div>
+
+                <label class="form-label fw-bold">Special Instructions</label>
+                <input type="text" name="instructions" class="form-control mb-3" placeholder="e.g. Less spicy">
+
+                <label class="form-label fw-bold">Quantity</label>
+                <div class="rsb-qty-picker mb-2">
+                    <button type="button" onclick="changeModalQty(-1)">−</button>
+                    <span id="foodModalQty">1</span>
+                    <button type="button" onclick="changeModalQty(1)">+</button>
+                </div>
+                <input type="hidden" name="quantity" id="foodModalQtyInput" value="1">
+            </div>
+            <div class="modal-footer">
+                {% if current_user %}
+                <button type="submit" class="rsb-btn rsb-btn-primary w-100" id="foodModalSubmit">ADD TO CART &mdash; ₹<span id="foodModalTotalPrice">0</span></button>
+                {% else %}
+                <a href="{{ url_for('login') }}" class="rsb-btn rsb-btn-primary w-100">Login to order</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block extra_scripts %}
+<script>
+    window.RSB_ADD_TO_CART_URL_BASE = "{{ url_for('add_to_cart', food_item_id=0) }}".replace('/0', '');
+</script>
+{% endblock %}

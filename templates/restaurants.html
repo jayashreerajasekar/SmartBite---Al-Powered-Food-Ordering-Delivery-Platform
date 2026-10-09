@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container rsb-section">
+
+    <form class="rsb-filter-bar" method="get">
+        {% if keyword %}<input type="hidden" name="q" value="{{ keyword }}">{% endif %}
+        {% if category %}<input type="hidden" name="category" value="{{ category }}">{% endif %}
+
+        <select name="sort" class="form-select" onchange="this.form.submit()">
+            <option value="recommended" {{ 'selected' if sort_by == 'recommended' }}>Recommended</option>
+            <option value="rating" {{ 'selected' if sort_by == 'rating' }}>Rating</option>
+            <option value="fastest" {{ 'selected' if sort_by == 'fastest' }}>Fastest Delivery</option>
+            <option value="price_low" {{ 'selected' if sort_by == 'price_low' }}>Price: Low to High</option>
+            <option value="price_high" {{ 'selected' if sort_by == 'price_high' }}>Price: High to Low</option>
+        </select>
+
+        <select name="min_rating" class="form-select" onchange="this.form.submit()">
+            <option value="">Any Rating</option>
+            <option value="4.5" {{ 'selected' if request.args.get('min_rating') == '4.5' }}>4.5+ ⭐</option>
+            <option value="4.0" {{ 'selected' if request.args.get('min_rating') == '4.0' }}>4.0+ ⭐</option>
+            <option value="3.5" {{ 'selected' if request.args.get('min_rating') == '3.5' }}>3.5+ ⭐</option>
+        </select>
+
+        <div class="form-check form-switch d-flex align-items-center">
+            <input class="form-check-input me-2" type="checkbox" name="veg_only" value="1" id="vegOnly"
+                   {{ 'checked' if request.args.get('veg_only') == '1' }} onchange="this.form.submit()">
+            <label class="form-check-label" for="vegOnly">Pure Veg</label>
+        </div>
+    </form>
+
+    <h2 class="rsb-section-title">
+        {% if keyword %}Results for "{{ keyword }}"
+        {% elif category %}{{ category }}
+        {% else %}All Restaurants{% endif %}
+        <span class="text-muted fs-6">({{ restaurants|length }} found)</span>
+    </h2>
+
+    {% if food_matches %}
+    <h5 class="mt-4">Dishes matching "{{ keyword }}"</h5>
+    <div class="rsb-food-grid mb-4">
+        {% for f in food_matches[:8] %}
+        <div class="rsb-food-card">
+            <img src="{{ f['image'] }}" alt="{{ f['name'] }}">
+            <div class="rsb-food-card-body">
+                <span class="rsb-veg-dot {{ 'veg' if f['is_veg'] else 'nonveg' }}"></span>
+                <h6>{{ f['name'] }}</h6>
+                <p class="text-muted small mb-1">{{ f['restaurant_name'] }}</p>
+                <p class="mb-0">₹{{ f['price'] }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="rsb-restaurant-grid">
+        {% for r in restaurants %}
+        {% include "_restaurant_card.html" %}
+        {% else %}
+        <p class="text-muted">No restaurants found. Try a different search.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

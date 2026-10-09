@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container rsb-section">
+    <h2 class="rsb-section-title">My Orders</h2>
+
+    {% if not orders_with_restaurant %}
+    <div class="rsb-empty-state">
+        <div class="rsb-empty-icon">📦</div>
+        <h4>No orders yet</h4>
+        <a href="{{ url_for('restaurants_page') }}" class="rsb-btn rsb-btn-primary">Order Now</a>
+    </div>
+    {% endif %}
+
+    {% for order, restaurant in orders_with_restaurant %}
+    <div class="rsb-order-history-card">
+        <img src="{{ restaurant['cover_image'] if restaurant else '' }}" alt="">
+        <div class="rsb-order-history-info">
+            <h6>{{ restaurant['name'] if restaurant else 'Restaurant' }}</h6>
+            <p class="text-muted small mb-1">Order ID: {{ order['order_code'] }} &middot; {{ order['created_at'] }}</p>
+            <p class="mb-1">₹{{ order['grand_total'] }} &middot; {{ order['status'].replace('_', ' ').title() }}</p>
+        </div>
+        <div class="rsb-order-history-actions">
+            <a href="{{ url_for('order_success', order_id=order['id']) }}" class="rsb-btn rsb-btn-outline rsb-btn-sm">VIEW</a>
+            <a href="{{ url_for('track_order', order_id=order['id']) }}" class="rsb-btn rsb-btn-outline rsb-btn-sm">TRACK</a>
+            <form method="post" action="{{ url_for('reorder', order_id=order['id']) }}">
+                <button type="submit" class="rsb-btn rsb-btn-primary rsb-btn-sm">REORDER</button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

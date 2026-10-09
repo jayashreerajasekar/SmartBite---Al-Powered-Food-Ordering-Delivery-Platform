@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+{% endblock %}
+{% block content %}
+<div class="container rsb-section">
+    <h2 class="rsb-section-title">Track Order {{ order['order_code'] }}</h2>
+
+    <div class="row">
+        <div class="col-lg-7">
+            <div id="trackingMap" class="rsb-map"></div>
+            <div class="rsb-eta-bar">
+                <div><b id="etaMinutes">--</b><span>min ETA</span></div>
+                <div><b id="distanceKm">--</b><span>km away</span></div>
+                <div><b id="currentStatusLabel">--</b><span>Status</span></div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="rsb-summary-card">
+                <h5>Order Status</h5>
+                <ul class="rsb-status-timeline" id="statusTimeline">
+                    {% for step in status_steps %}
+                    <li data-step="{{ step }}" class="{{ 'done' if status_steps.index(step) <= status_steps.index(order['status']) else '' }}">
+                        {{ step.replace('_', ' ').title() }}
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                {% if partner %}
+                <hr>
+                <h5>Your Delivery Partner</h5>
+                <div class="rsb-partner-card">
+                    <img src="{{ partner['avatar'] }}" alt="{{ partner['name'] }}">
+                    <div>
+                        <h6>{{ partner['name'] }}</h6>
+                        <p class="mb-0">⭐ {{ partner['rating'] }} &middot; {{ partner['vehicle_type'] }}</p>
+                        <p class="mb-0 text-muted small">{{ partner['vehicle_number'] }}</p>
+                        <p class="mb-0 text-muted small" id="partnerMessage">{{ partner['name'].split(' ')[0] }} is on the way</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if order['status'] == 'delivered' %}
+            <div class="rsb-summary-card mt-3">
+                {% if review %}
+                <h5>Your Review</h5>
+                <p>Restaurant: {{ '⭐' * review['restaurant_rating'] }}</p>
+                <p>Food: {{ '⭐' * review['food_rating'] }}</p>
+                <p>Delivery: {{ '⭐' * review['delivery_rating'] }}</p>
+                {% if review['comment'] %}<p class="text-muted">"{{ review['comment'] }}"</p>{% endif %}
+                {% else %}
+                <h5>Rate your experience</h5>
+                <form method="post" action="{{ url_for('submit_review', order_id=order['id']) }}">
+                    <label class="form-label">Restaurant</label>
+                    <select name="restaurant_rating" class="form-select mb-2">
+                        {% for n in range(5,0,-1) %}<option value="{{ n }}">{{ '⭐' * n }}</option>{% endfor %}
+                    </select>
+                    <label class="form-label">Food</label>
+                    <select name="food_rating" class="form-select mb-2">
+                        {% for n in range(5,0,-1) %}<option value="{{ n }}">{{ '⭐' * n }}</option>{% endfor %}
+                    </select>
+                    <label class="form-label">Delivery Partner</label>
+                    <select name="delivery_rating" class="form-select mb-2">
+                        {% for n in range(5,0,-1) %}<option value="{{ n }}">{{ '⭐' * n }}</option>{% endfor %}
+                    </select>
+                    <textarea name="comment" class="form-control mb-2" placeholder="Write a review (optional)"></textarea>
+                    <button type="submit" class="rsb-btn rsb-btn-primary w-100">Submit Review</button>
+                </form>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const restaurantLoc = [{{ restaurant['latitude'] }}, {{ restaurant['longitude'] }}];
+{% if tracking %}
+const partnerStartLoc = [{{ tracking['current_lat'] }}, {{ tracking['current_lng'] }}];
+{% else %}
+const partnerStartLoc = restaurantLoc;
+{% endif %}
+// A simple fixed "customer" point near the restaurant for this demo order
+const customerLoc = [restaurantLoc[0] + 0.01 + {{ order['address_id'] or 0 }} * 0.0008,
+                      restaurantLoc[1] + 0.01 + {{ order['address_id'] or 0 }} * 0.0008];
+
+const map = L.map('trackingMap').setView(restaurantLoc, 14);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+const restaurantIcon = L.divIcon({html: '🍴', className: 'rsb-map-emoji-icon'});
+const customerIcon = L.divIcon({html: '🏠', className: 'rsb-map-emoji-icon'});
+const partnerIcon = L.divIcon({html: '🛵', className: 'rsb-map-emoji-icon'});
+
+L.marker(restaurantLoc, {icon: restaurantIcon}).addTo(map).bindPopup("Restaurant: {{ restaurant['name'] }}");
+L.marker(customerLoc, {icon: customerIcon}).addTo(map).bindPopup("Delivery Address");
+const partnerMarker = L.marker(partnerStartLoc, {icon: partnerIcon}).addTo(map).bindPopup("Delivery Partner");
+
+const routeLine = L.polyline([restaurantLoc, customerLoc], {color: '#e23744', dashArray: '6 6'}).addTo(map);
+map.fitBounds(routeLine.getBounds(), {padding: [40, 40]});
+
+const orderId = {{ order['id'] }};
+const isDelivered = {{ 'true' if order['status'] == 'delivered' else 'false' }};
+
+function updateStatusTimeline(status) {
+    const steps = document.querySelectorAll('#statusTimeline li');
+    let reached = false;
+    steps.forEach(li => {
+        if (li.dataset.step === status) { reached = true; }
+    });
+    let passed = true;
+    steps.forEach(li => {
+        li.classList.remove('done', 'current');
+        if (passed) { li.classList.add('done'); }
+        if (li.dataset.step === status) { li.classList.add('current'); passed = false; }
+    });
+}
+
+function refreshTrackingUI(data) {
+    document.getElementById('etaMinutes').textContent = data.eta_minutes;
+    document.getElementById('distanceKm').textContent = data.distance_km;
+    document.getElementById('currentStatusLabel').textContent = data.status.replace('_', ' ');
+    updateStatusTimeline(data.status);
+    if (data.lat && data.lng) {
+        partnerMarker.setLatLng([data.lat, data.lng]);
+    }
+    if (data.status === 'delivered') {
+        document.getElementById('partnerMessage') && (document.getElementById('partnerMessage').textContent = 'Order delivered!');
+        clearInterval(trackingTimer);
+        setTimeout(() => location.reload(), 1000);
+    }
+}
+
+updateStatusTimeline("{{ order['status'] }}");
+document.getElementById('etaMinutes').textContent = "{{ tracking['eta_minutes'] if tracking else '--' }}";
+document.getElementById('distanceKm').textContent = "{{ tracking['distance_remaining_km'] if tracking else '--' }}";
+document.getElementById('currentStatusLabel').textContent = "{{ order['status'].replace('_',' ') }}";
+
+let trackingTimer;
+if (!isDelivered) {
+    trackingTimer = setInterval(() => {
+        fetch(`/api/advance_order/${orderId}`, {method: 'POST'})
+            .then(res => res.json())
+            .then(data => { if (!data.error) refreshTrackingUI(data); });
+    }, 3000);
+}
+</script>
+{% endblock %}

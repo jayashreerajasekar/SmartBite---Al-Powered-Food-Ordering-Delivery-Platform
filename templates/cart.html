@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container rsb-section">
+    <h2 class="rsb-section-title">Your Cart</h2>
+
+    {% if not cart_items %}
+    <div class="rsb-empty-state">
+        <div class="rsb-empty-icon">🛒</div>
+        <h4>Your cart is empty</h4>
+        <p class="text-muted">Looks like you haven't added anything yet.</p>
+        <a href="{{ url_for('restaurants_page') }}" class="rsb-btn rsb-btn-primary">Browse Restaurants</a>
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-lg-7">
+            {% if restaurant %}
+            <h5 class="mb-3">Items from <a href="{{ url_for('restaurant_page', restaurant_id=restaurant['id']) }}">{{ restaurant['name'] }}</a></h5>
+            {% endif %}
+            {% for item in cart_items %}
+            <div class="rsb-cart-item">
+                <img src="{{ item['image'] }}" alt="{{ item['name'] }}" onerror="this.src='https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=300'">
+                <div class="rsb-cart-item-info">
+                    <span class="rsb-veg-dot {{ 'veg' if item['is_veg'] else 'nonveg' }}"></span>
+                    <h6>{{ item['name'] }} <small class="text-muted">({{ item['size'] }})</small></h6>
+                    {% if item['extras'] %}<p class="small text-muted mb-0">+ {{ item['extras'] }}</p>{% endif %}
+                    {% if item['special_instructions'] %}<p class="small text-muted mb-0"><i>"{{ item['special_instructions'] }}"</i></p>{% endif %}
+                    <p class="mb-0">₹{{ item['price'] + item['extras_price'] }} each</p>
+                </div>
+                <div class="rsb-cart-item-actions">
+                    <form method="post" action="{{ url_for('update_cart_item', cart_item_id=item['id']) }}" class="rsb-qty-form">
+                        <button type="submit" name="action" value="decrease">−</button>
+                        <span>{{ item['quantity'] }}</span>
+                        <button type="submit" name="action" value="increase">+</button>
+                    </form>
+                    <p class="fw-bold mb-1">₹{{ (item['price'] + item['extras_price']) * item['quantity'] }}</p>
+                    <form method="post" action="{{ url_for('remove_cart_item', cart_item_id=item['id']) }}">
+                        <button type="submit" class="rsb-remove-link">Remove</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="col-lg-5">
+            <div class="rsb-summary-card">
+                <h5>Apply Coupon</h5>
+                <form method="post" action="{{ url_for('apply_coupon') }}" class="d-flex gap-2 mb-3">
+                    <input type="text" name="code" class="form-control" placeholder="Enter coupon code" value="{{ totals.coupon_code or '' }}">
+                    <button type="submit" class="rsb-btn rsb-btn-outline">Apply</button>
+                </form>
+                {% if totals.coupon_code %}
+                <form method="post" action="{{ url_for('remove_coupon') }}">
+                    <button type="submit" class="rsb-remove-link mb-3">Remove coupon "{{ totals.coupon_code }}"</button>
+                </form>
+                {% endif %}
+                <p class="text-muted small">Try: RIN50, WELCOME125, RIN20, FIRSTORDER</p>
+
+                <hr>
+                <h5>Bill Details</h5>
+                <div class="rsb-bill-row"><span>Item Total</span><span>₹{{ totals.item_total }}</span></div>
+                <div class="rsb-bill-row"><span>Delivery Fee</span><span>₹{{ totals.delivery_fee }}</span></div>
+                <div class="rsb-bill-row"><span>Platform Fee</span><span>₹{{ totals.platform_fee }}</span></div>
+                <div class="rsb-bill-row"><span>Taxes</span><span>₹{{ totals.taxes }}</span></div>
+                {% if totals.discount > 0 %}
+                <div class="rsb-bill-row text-success"><span>Coupon Discount</span><span>−₹{{ totals.discount }}</span></div>
+                {% endif %}
+                <hr>
+                <div class="rsb-bill-row rsb-bill-total"><span>GRAND TOTAL</span><span>₹{{ totals.grand_total }}</span></div>
+
+                <a href="{{ url_for('checkout') }}" class="rsb-btn rsb-btn-primary w-100 mt-3">Proceed to Checkout</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container rsb-auth-container">
+    <div class="rsb-auth-card">
+        <h2>Welcome back</h2>
+        <p class="text-muted">Log in to RIN'S SMART BITE</p>
+        <form method="post">
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control" required autofocus>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-control" required>
+            </div>
+            <button type="submit" class="rsb-btn rsb-btn-primary w-100">Login</button>
+        </form>
+        <p class="text-center mt-3">New here? <a href="{{ url_for('register') }}">Create an account</a></p>
+
+        <hr>
+        <p class="text-muted small mb-2"><b>Demo accounts</b> (for capstone presentation):</p>
+        <ul class="small text-muted">
+            <li>Customer: <code>customer@rinsmartbite.demo</code> / <code>Customer@123</code></li>
+            <li>Admin: <code>admin@rinsmartbite.demo</code> / <code>Admin@123</code></li>
+            <li>Delivery: <code>delivery@rinsmartbite.demo</code> / <code>Delivery@123</code></li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

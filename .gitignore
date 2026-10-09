@@ -3,5 +3,6 @@ venv/
 __pycache__/
 *.py[cod]
 .env
+rin_smart_bite.db
 node_modules/
 .pytest_cache/
